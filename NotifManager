@@ -1,0 +1,27 @@
+NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+
+           Notification notification;
+
+           if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+               String channel_id="my_channel";
+               notification = new Notification.Builder(getApplicationContext())
+                       .setContentTitle("New mail from " + usr)
+                       .setContentText("Hello World")
+                       .setSmallIcon(R.drawable.icon)
+                       .setAutoCancel(true)
+                       .setChannelId(channel_id)
+                       .build();
+
+               nm.createNotificationChannel(
+                       new NotificationChannel(channel_id, "New Channel", NotificationManager.IMPORTANCE_HIGH));
+           } else {
+               notification = new Notification.Builder(getApplicationContext())
+                       .setSmallIcon(R.drawable.ic_launcher_background)
+                       .setContentTitle("Notification Testing 1")
+                       .setContentText("Notification body")
+                       .setSubText("Notification subtext")
+                       .build();
+           }
+
+           nm.notify(211, notification);
+ button ke ander daal dena
