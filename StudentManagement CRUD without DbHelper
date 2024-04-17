@@ -1,0 +1,290 @@
+package com.example.datatbasequest1;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.ContentInfo;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+public class MainActivity extends AppCompatActivity {
+    private EditText etroll,et1,et2;
+    private Button add,up,del,viewb;
+    private TextView t1;
+    private SQLiteDatabase db;
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        etroll=findViewById(R.id.editTextText);
+        et1=findViewById(R.id.editTextText2);
+        et2=findViewById(R.id.editTextText3);
+        add=findViewById(R.id.button);
+        up=findViewById(R.id.button2);
+        del=findViewById(R.id.button3);
+        viewb=findViewById(R.id.button4);
+        t1=findViewById(R.id.textView4);
+
+        db=openOrCreateDatabase("StudentDB", MODE_PRIVATE, null);
+        db.execSQL("CREATE TABLE IF NOT EXISTS Student(rollno INT ,name VARCHAR ,MARKS INT)");
+
+        add.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                addstu();
+            }
+        });
+
+        up.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                update();
+            }
+        });
+
+
+        del.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                delstu();
+            }
+        });
+
+        viewb.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                vieww();
+            }
+
+        });
+
+    }
+
+    private void addstu(){
+        String Rollno=etroll.getText().toString().trim();
+        Integer roll=Integer.parseInt(Rollno);
+        String name=et1.getText().toString().trim();
+        String marks=et2.getText().toString().trim();
+        Integer marksint=Integer.parseInt(marks);
+
+        ContentValues v=new ContentValues();
+        v.put("rollno",roll);
+        v.put("name",name);
+        v.put("MARKS",marksint);
+        long result=db.insert("Student",null,v);
+        if(result!=1){
+            Toast.makeText(this,"STUDENT ADDED SUCCESSFULLT !!",Toast.LENGTH_SHORT).show();
+
+        }
+        else{
+            Toast.makeText(this,"STUDENT NOT ADDED !!",Toast.LENGTH_SHORT).show();
+
+        }
+
+    }
+    private void delstu(){
+        String roll=etroll.getText().toString().trim();
+        int result=db.delete("Student","rollno=?",new String[] {roll});
+        if (result > 0) {
+            Toast.makeText(this, "Student deleted successfully", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Failed to delete student", Toast.LENGTH_SHORT).show();
+        }
+    }
+    private void update(){
+        String roll=etroll.getText().toString().trim();
+        Integer rolln=Integer.parseInt(roll);
+        String name=et1.getText().toString().trim();
+        String marks=et2.getText().toString().trim();
+        Integer markss=Integer.parseInt(marks);
+
+
+        ContentValues v=new ContentValues();
+        v.put("name",name);
+        v.put("MARKS",markss);
+        long result=db.update("Student",v,"rollno=?",new String[]{roll});
+        if (result > 0) {
+            Toast.makeText(this, "Student updated successfully", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(this, "Failed to update student", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private void vieww(){
+        Cursor cursor = db.rawQuery("SELECT * FROM Student", null);
+        if (cursor.getCount() == 0) {
+            Toast.makeText(this, "No students found", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        StringBuilder stringBuilder = new StringBuilder();
+        while (cursor.moveToNext()) {
+            String rollNo = cursor.getString(0);
+            String namee = cursor.getString(1);
+            String marksss = cursor.getString(2);
+            stringBuilder.append("Roll No: ").append(rollNo).append(", Name: ").append(namee).append(", Marks: ").append(marksss).append("\n");
+        }
+
+        t1.setText(stringBuilder.toString());
+    }
+}
+
+
+
+
+
+
+
+
+
+XML
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <EditText
+        android:id="@+id/editTextText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="67dp"
+        android:ems="10"
+        android:inputType="text"
+        android:text="Roll_No"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <EditText
+        android:id="@+id/editTextText2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="28dp"
+        android:ems="10"
+        android:inputType="text"
+        android:text="Name"
+        app:layout_constraintStart_toStartOf="@+id/editTextText"
+        app:layout_constraintTop_toBottomOf="@+id/editTextText" />
+
+    <EditText
+        android:id="@+id/editTextText3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="text"
+        android:text="Marks"
+        app:layout_constraintBaseline_toBaselineOf="@+id/textView3"
+        app:layout_constraintStart_toStartOf="@+id/editTextText2" />
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="14dp"
+        android:layout_marginTop="84dp"
+        android:layout_marginBottom="82dp"
+        android:text="roll no"
+        app:layout_constraintBottom_toBottomOf="@+id/editTextText2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginBottom="11dp"
+        android:text="Name"
+        app:layout_constraintBottom_toBottomOf="@+id/editTextText2"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/textView3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="9dp"
+        android:layout_marginTop="66dp"
+        android:text="Marks"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView2" />
+
+    <Button
+        android:id="@+id/button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="62dp"
+        android:text="ADD STUDENT"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/editTextText3" />
+
+    <Button
+        android:id="@+id/button2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="47dp"
+        android:layout_marginBottom="21dp"
+        android:text="UPDATE"
+        app:layout_constraintBottom_toTopOf="@+id/button3"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/button3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="100dp"
+        android:layout_marginTop="21dp"
+        android:layout_marginEnd="99dp"
+        android:text="DELETE STUDENT"
+        app:layout_constraintEnd_toEndOf="@+id/button2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/button" />
+
+    <Button
+        android:id="@+id/button4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:layout_marginEnd="2dp"
+        android:text="VIEW STUDENTS"
+        app:layout_constraintEnd_toEndOf="@+id/button3"
+        app:layout_constraintTop_toBottomOf="@+id/button3" />
+
+    <TextView
+        android:id="@+id/textView4"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="2dp"
+        android:text=""
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView5" />
+
+    <TextView
+        android:id="@+id/textView5"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="44dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="44dp"
+        android:layout_marginBottom="523dp"
+        android:text=" STUDENT DATABASE CRUD OPERATIONS "
+        app:layout_constraintBottom_toTopOf="@+id/textView4"
+        app:layout_constraintEnd_toEndOf="@+id/button2"
+        app:layout_constraintStart_toStartOf="@+id/textView3"
+        app:layout_constraintTop_toTopOf="parent" />
+</androidx.constraintlayout.widget.ConstraintLayout>
