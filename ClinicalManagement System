@@ -1,0 +1,320 @@
+login 
+
+
+
+
+package com.example.clinicalmanagement;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+
+public class LoginActivity extends AppCompatActivity {
+
+    EditText usernameEditText, passwordEditText;
+    Button loginButton;
+    DatabaseHelper databaseHelper;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_login);
+
+        usernameEditText = findViewById(R.id.editTextUsername);
+        passwordEditText = findViewById(R.id.editTextPassword);
+        loginButton = findViewById(R.id.buttonLogin);
+
+        databaseHelper = new DatabaseHelper(this);
+
+        loginButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String username = usernameEditText.getText().toString().trim();
+                String password = passwordEditText.getText().toString().trim();
+
+                if (databaseHelper.checkUser(username, password)) {
+                    Toast.makeText(LoginActivity.this, "Login successful", Toast.LENGTH_SHORT).show();
+                    // Redirect to main activity or dashboard
+                    startActivity(new Intent(LoginActivity.this, BookAppointmentActivity.class));
+                    finish();
+                } else {
+                    Toast.makeText(LoginActivity.this, "Invalid username or password", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+    }
+}
+
+
+
+
+
+
+
+Register 
+
+
+
+
+
+package com.example.clinicalmanagement;
+
+import androidx.appcompat.app.AppCompatActivity;
+
+import android.content.Intent;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Toast;
+import android.database.sqlite.SQLiteDatabase;
+
+public class RegisterActivity extends AppCompatActivity {
+
+    EditText usernameEditText, passwordEditText;
+    Button registerButton;
+    DatabaseHelper databaseHelper;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_register);
+
+        usernameEditText = findViewById(R.id.editTextUsername);
+        passwordEditText = findViewById(R.id.editTextPassword);
+        registerButton = findViewById(R.id.buttonRegister);
+
+        databaseHelper = new DatabaseHelper(this);
+
+        registerButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String username = usernameEditText.getText().toString().trim();
+                String password = passwordEditText.getText().toString().trim();
+                // Add validation logic here if needed
+
+                long result = databaseHelper.insertUser(username, password);
+                if (result != -1) {
+                    Toast.makeText(RegisterActivity.this, "Registration successful", Toast.LENGTH_SHORT).show();
+                    // Redirect to login activity
+                    startActivity(new Intent(RegisterActivity.this, LoginActivity.class));
+                    finish();
+                } else {
+                    Toast.makeText(RegisterActivity.this, "Registration failed", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+    }
+}
+
+
+
+
+
+
+
+BookAppointment
+
+
+
+
+package com.example.clinicalmanagement;
+import androidx.appcompat.app.AppCompatActivity;
+import android.app.Activity;
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.Spinner;
+import android.widget.TimePicker;
+import android.widget.Toast;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class BookAppointmentActivity extends AppCompatActivity {
+
+    Spinner spinnerDoctor;
+    DatePicker datePicker;
+    TimePicker timePicker;
+    Button bookAppointmentButton;
+    DatabaseHelper databaseHelper;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_book_appointment);
+
+        databaseHelper = new DatabaseHelper(this);
+
+        spinnerDoctor = findViewById(R.id.spinnerDoctor);
+        datePicker = findViewById(R.id.datePicker);
+        timePicker = findViewById(R.id.timePicker);
+        bookAppointmentButton = findViewById(R.id.buttonBookAppointment);
+
+        // Populate spinner with doctor names
+        List<String> doctorNames = new ArrayList<>();
+        doctorNames.add("Dr. John Doe");
+        doctorNames.add("Dr. Jane Smith");
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, doctorNames);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerDoctor.setAdapter(adapter);
+
+        spinnerDoctor.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                // Handle doctor selection
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView) {
+                // Do nothing
+            }
+        });
+        bookAppointmentButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String doctorName = spinnerDoctor.getSelectedItem().toString();
+
+                // Get selected date and time
+                int day = datePicker.getDayOfMonth();
+                int month = datePicker.getMonth() + 1;
+                int year = datePicker.getYear();
+
+                int hour = timePicker.getCurrentHour();
+                int minute = timePicker.getCurrentMinute();
+
+                // Store appointment details in database
+                long result = databaseHelper.insertAppointment(doctorName, day, month, year, hour, minute);
+                String res = String.valueOf(result);
+                if (result != -1) {
+                    Toast.makeText(BookAppointmentActivity.this, "Appointment booked successfully", Toast.LENGTH_SHORT).show();
+                    finish();
+                } else {
+                    Toast.makeText(BookAppointmentActivity.this, "Error number is "+res, Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+}
+
+
+
+
+
+DBHELPER 
+
+
+
+
+package com.example.clinicalmanagement;
+
+import android.content.ContentValues;
+import android.content.Context;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.sqlite.SQLiteOpenHelper;
+
+public class DatabaseHelper extends SQLiteOpenHelper {
+    private static final String DATABASE_NAME = "clinical_management.db";
+    private static final int DATABASE_VERSION = 1;
+
+    // Table names and columns
+    private static final String TABLE_USERS = "users";
+    private static final String COLUMN_USER_ID = "id";
+    private static final String COLUMN_USERNAME = "username";
+    private static final String COLUMN_PASSWORD = "password";
+    private static final String TABLE_APPOINTMENTS = "appointments";
+    private static final String COLUMN_APPOINTMENT_ID = "id";
+    private static final String COLUMN_DOCTOR_NAME = "doctor_name";
+    private static final String COLUMN_DAY = "day";
+    private static final String COLUMN_MONTH = "month";
+    private static final String COLUMN_YEAR = "year";
+    private static final String COLUMN_HOUR = "hour";
+    private static final String COLUMN_MINUTE = "minute";
+
+    // Create table statement for appointments
+    private static final String CREATE_TABLE_APPOINTMENTS = "CREATE TABLE " + TABLE_APPOINTMENTS + "("
+            + COLUMN_APPOINTMENT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+            + COLUMN_DOCTOR_NAME + " TEXT,"
+            + COLUMN_DAY + " INTEGER,"
+            + COLUMN_MONTH + " INTEGER,"
+            + COLUMN_YEAR + " INTEGER,"
+            + COLUMN_HOUR + " INTEGER,"
+            + COLUMN_MINUTE + " INTEGER" + ")";
+
+    private static final String CREATE_TABLE_USERS = "CREATE TABLE " + TABLE_USERS + "("
+            + COLUMN_USER_ID + " INTEGER PRIMARY KEY AUTOINCREMENT,"
+            + COLUMN_USERNAME + " TEXT,"
+            + COLUMN_PASSWORD + " TEXT" + ")";
+
+    public DatabaseHelper(Context context) {
+        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+    }
+
+    @Override
+    public void onCreate(SQLiteDatabase db) {
+        // Create tables
+        db.execSQL(CREATE_TABLE_USERS);
+        db.execSQL(CREATE_TABLE_APPOINTMENTS);
+    }
+
+    @Override
+    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
+        // Upgrade database (if needed)
+    }
+
+    // Insert user into the database
+    public long insertUser(String username, String password) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USERNAME, username);
+        values.put(COLUMN_PASSWORD, password);
+        long id = db.insert(TABLE_USERS, null, values);
+        db.close();
+        return id;
+    }
+
+    // Check if user exists in the database
+    public boolean checkUser(String username, String password) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor cursor = db.query(TABLE_USERS,
+                new String[]{COLUMN_USER_ID},
+                COLUMN_USERNAME + " = ? AND " + COLUMN_PASSWORD + " = ?",
+                new String[]{username, password},
+                null, null, null);
+        boolean exists = cursor.getCount() > 0;
+        cursor.close();
+        db.close();
+        return exists;
+    }
+
+    // Insert appointment into the database
+    public long insertAppointment(String doctorName, int day, int month, int year, int hour, int minute) {
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_DOCTOR_NAME, doctorName);
+        values.put(COLUMN_DAY, day);
+        values.put(COLUMN_MONTH, month);
+        values.put(COLUMN_YEAR, year);
+        values.put(COLUMN_HOUR, hour);
+        values.put(COLUMN_MINUTE, minute);
+        long id = db.insert(TABLE_APPOINTMENTS, null, values);
+        db.close();
+        return id;
+    }
+}
+
+
+
