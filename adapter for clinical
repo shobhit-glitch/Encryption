@@ -1,0 +1,16 @@
+spinnerDoctor.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+    @Override
+    public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+        // Get the selected doctor's name
+        String selectedDoctor = parentView.getItemAtPosition(position).toString();
+        
+        // Now you can handle the selected doctor as needed
+        // For example, you might want to load appointment slots specific to this doctor
+        // or update UI elements based on the selected doctor
+    }
+
+    @Override
+    public void onNothingSelected(AdapterView<?> parentView) {
+        // Do nothing
+    }
+});
